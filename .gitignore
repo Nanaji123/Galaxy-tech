@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# React Native
+BuzinessReels/.bundle/
+BuzinessReels/ios/Pods/
+BuzinessReels/ios/build/
+BuzinessReels/android/app/build/
+BuzinessReels/android/build/
+BuzinessReels/android/.gradle/
+BuzinessReels/android/local.properties
+
+# NPM cache
+BuzinessReels/.npm-cache/
+
+# Metro
+*.jsbundle
+
+# Environment
+.env
+.env.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
