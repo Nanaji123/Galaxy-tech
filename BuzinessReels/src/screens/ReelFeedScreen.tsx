@@ -33,19 +33,24 @@ const ReelFeedScreen = () => {
   const isLoadingRef = useRef(false);
 
   useEffect(() => {
+    let wasOffline = false;
+
     const unsubscribe = NetInfo.addEventListener(state => {
-      const wasOffline = isOffline;
       const nowOnline = !!state.isConnected;
       setIsOffline(!nowOnline);
 
       if (wasOffline && nowOnline) {
         console.log('Network restored — syncing pending actions');
-        syncPendingActions();
+        syncPendingActions().then(() => {
+          fetchReels();
+        });
       }
+      wasOffline = !nowOnline;
     });
 
-    syncPendingActions();
-    fetchReels();
+    syncPendingActions().then(() => {
+      fetchReels();
+    });
 
     return () => {
       unsubscribe();
@@ -153,35 +158,35 @@ const ReelFeedScreen = () => {
     }
   };
 
-  const handleLikePress = async (
-    reelId: string,
-    currentLikedState: boolean,
-  ) => {
-    const actionType = currentLikedState ? 'UNLIKE' : 'LIKE';
-    const newLikedState = !currentLikedState;
-    const delta = newLikedState ? 1 : -1;
+  const handleLikePress = useCallback(
+    async (reelId: string, currentLikedState: boolean) => {
+      const actionType = currentLikedState ? 'UNLIKE' : 'LIKE';
+      const newLikedState = !currentLikedState;
+      const delta = newLikedState ? 1 : -1;
 
-    setReels(prevReels =>
-      prevReels.map(r => {
-        if (r.id === reelId) {
-          const newCount = Math.max(0, r.likesCount + delta);
-          updateCachedReelLike(reelId, newLikedState, newCount);
-          return {
-            ...r,
-            isLiked: newLikedState,
-            likesCount: newCount,
-          };
-        }
-        return r;
-      }),
-    );
+      setReels(prevReels =>
+        prevReels.map(r => {
+          if (r.id === reelId) {
+            const newCount = Math.max(0, r.likesCount + delta);
+            updateCachedReelLike(reelId, newLikedState, newCount);
+            return {
+              ...r,
+              isLiked: newLikedState,
+              likesCount: newCount,
+            };
+          }
+          return r;
+        }),
+      );
 
-    await addPendingAction({type: actionType, postId: reelId});
+      await addPendingAction({type: actionType, postId: reelId});
 
-    if (!isOffline) {
-      syncPendingActions();
-    }
-  };
+      if (!isOffline) {
+        syncPendingActions();
+      }
+    },
+    [isOffline],
+  );
 
   const viewabilityConfig = useRef({
     itemVisiblePercentThreshold: 50,

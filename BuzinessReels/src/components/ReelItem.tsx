@@ -215,4 +215,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ReelItem;
+export default React.memo(ReelItem);
